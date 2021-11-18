@@ -14,7 +14,7 @@ Damit das Camp von der Versammlungsfreiheit geschützt ist, müssen rund um die 
     pipenv install
 
 ### Configuration
-The application must be configured using environment variables or a `.env` file. See [settings.py](settings.py) for all required and optional variables.
+The application must be configured using environment variables or a `.env` file. See [settings.py](stabibot/settings.py) for all required and optional variables.
 
 ### Run
 
