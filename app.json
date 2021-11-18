@@ -1,0 +1,21 @@
+{
+  "name": "Stabine der Stabibot",
+  "repository": "https://github.com/Debakel/stabibot",
+  "addons": [
+    "scheduler"
+  ],
+  "env": {
+    "ICS_FEED": {
+      "description": "ICS calendar feed (Schichtplan)"
+    },
+    "SCHICHTPLAN_URL": {
+      "desccription": "URL zum Schichtplan auf http://teamup.com/"
+    },
+    "TELEGRAM_AUTH_TOKEN": {
+      "description": "Telegram auth token received by https://telegram.me/BotFather"
+    },
+    "TELEGRAM_CHAT_ID": {
+      "description": "Chat ID to send messages to"
+    }
+  }
+}
