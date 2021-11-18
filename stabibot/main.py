@@ -2,23 +2,32 @@ import locale
 from string import Template
 from typing import List
 
+import pendulum
+
 from stabibot import telegram
 from stabibot.calendar import get_gaps
 from stabibot.intervals import Interval
 
-locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
+locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
 
-gap_template = Template('')
+gap_template = Template("")
 
 
 def format_message(gaps: List[Interval]):
-    x = [f"➡️ {gap.start_datetime.strftime('%A %H:%M')} bis {gap.end_datetime.strftime('%H:%M')}" for gap in gaps]
-    x = "\n".join(x)
+    slots = []
+    for gap in gaps:
+        start = pendulum.instance(gap.start_datetime)
+        end = pendulum.instance(gap.end_datetime)
+        msg = f"➡️ {start.format('dddd HH:mm', locale='de')} bis {end.format('HH:mm', locale='de')}"
+        slots.append(msg)
+
+    slots = '\n'.join(slots)
+
     message = f"""
 ☝️
 Folgende Schichten sind noch nicht vergeben:
    
-{x}
+{slots}
 
 Hier kannst du dich dafür eintragen: https://teamup.com/ks4o76civjv5vxqjr7
 

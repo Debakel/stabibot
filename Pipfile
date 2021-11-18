@@ -9,6 +9,7 @@ requests = "*"
 python-dotenv = "*"
 datetimerange = "*"
 python-telegram-bot = "*"
+pendulum = "*"
 
 [dev-packages]
 black = "==21.11b1"
