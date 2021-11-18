@@ -1,5 +1,5 @@
 from stabibot import telegram
-from stabibot.calendar import get_gaps
+from stabibot.shifts import get_gaps
 from stabibot.format import format_message
 
 

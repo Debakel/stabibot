@@ -68,13 +68,12 @@ def get_gaps(min_persons=MIN_PERSONS, start_date=None, end_date=None) -> List[In
     if not end_date:
         end_date = start_date + timedelta(hours=DEFAULT_RANGE_HOURS)
 
-    range = Interval(start_date, end_date)
-    slots = range.slots(timedelta(minutes=RESOLUTION_MINUTES))
+    timerange = Interval(start_date, end_date)
 
-    schichten = IntervalCollection(get_schichten(range))
+    schichten = IntervalCollection(get_schichten(timerange))
     gaps = IntervalCollection()
 
-    for slot in slots:
+    for slot in timerange.slots(timedelta(minutes=RESOLUTION_MINUTES)):
         num_attendees = schichten.count_intersections(slot)
 
         if num_attendees < min_persons:
