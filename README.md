@@ -18,7 +18,7 @@ The application must be configured using environment variables or a `.env` file.
 
 ### Run
 
-    python -m stabibot.run
+    python -m stabibot.main
 
 ## Deployment
 
