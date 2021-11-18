@@ -8,8 +8,10 @@ recurring-ical-events = "==0.2.0b0"
 requests = "*"
 python-dotenv = "*"
 datetimerange = "*"
+python-telegram-bot = "*"
 
 [dev-packages]
+black = "==21.11b1"
 
 [requires]
 python_version = "3.9"
