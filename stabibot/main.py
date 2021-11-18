@@ -1,5 +1,3 @@
-import locale
-from string import Template
 from typing import List
 
 import pendulum
@@ -7,10 +5,6 @@ import pendulum
 from stabibot import telegram
 from stabibot.calendar import get_gaps
 from stabibot.intervals import Interval
-
-locale.setlocale(locale.LC_ALL, "de_DE.UTF-8")
-
-gap_template = Template("")
 
 
 def format_message(gaps: List[Interval]):
