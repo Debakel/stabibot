@@ -59,7 +59,10 @@ def get_schichten(interval: Interval) -> List[Interval]:
 
 
 def get_gaps(min_persons=MIN_PERSONS, start_date=None, end_date=None) -> List[Interval]:
-    """Gibt Liste von Zeiträumen zurück, in denen weniger als `min_num_persons` anwesend sind"""
+    """Gibt Lücken im Schichtplan zurück, die im angegebenen Zeitintervall liegen
+
+    :param min_persons: Anzahl Personen, die immer anwesend sein müssen
+    """
     if not start_date:
         start_date = datetime.now(tz=pytz.timezone("Europe/Berlin"))
     if not end_date:

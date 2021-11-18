@@ -46,7 +46,7 @@ class IntervalCollection:
         self.intervals = sorted(self.intervals, key=lambda i: i.start_datetime)
 
     def count_intersections(self, interval: Interval) -> int:
-        """Zählt, wie viele der Einträge der Collection sich mit `interval` überschneiden"""
+        """Zählt, wie viele Einträge der Collection sich mit `interval` überschneiden"""
         count = 0
         for schicht in self.intervals:
             if schicht.is_intersection(interval):
