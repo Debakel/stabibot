@@ -5,10 +5,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+SCHICHTPLAN_URL = os.environ.get("SCHICHTPLAN_URL")
 ICS_FEED = os.environ.get("ICS_FEED")
 TIME_ZONE = pytz.timezone("Europe/Berlin")
 RESOLUTION_MINUTES = 1
-DEFAULT_RANGE_HOURS = 36
+
+# Wie viele Stunden in die Zukunft sollen überprüft werden?
+DEFAULT_RANGE_HOURS = int(os.environ.get("DEFAULT_RANGE_HOURS", 36))
+
+# Wie viel Personen müssen gleichzeitig anwesend sein?
 MIN_PERSONS = 2
 
 TELEGRAM_AUTH_TOKEN = os.environ.get("TELEGRAM_AUTH_TOKEN")
