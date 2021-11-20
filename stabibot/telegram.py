@@ -6,4 +6,4 @@ bot = Bot(token=settings.TELEGRAM_AUTH_TOKEN)
 
 
 def send_message(message: str):
-    bot.send_message(settings.TELEGRAM_CHAT_ID, message)
+    bot.send_message(settings.TELEGRAM_CHAT_ID, message, disable_web_page_preview=True)
