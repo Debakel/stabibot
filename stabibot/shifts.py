@@ -37,7 +37,7 @@ def get_schichten(interval: Interval) -> List[Interval]:
         interval.end_datetime.replace(tzinfo=None),
     )
 
-    events = [event for event in events if not "Repro" in event["SUMMARY"]]
+    events = [event for event in events if not "Repro" in event.get("SUMMARY", "")]
 
     schichten = list()
     for event in events:
