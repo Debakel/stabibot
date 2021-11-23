@@ -58,7 +58,9 @@ def get_schichten(interval: Interval) -> List[Interval]:
     return schichten
 
 
-def get_gaps(min_persons=MIN_PERSONS, start_date=None, end_date=None) -> List[Interval]:
+def get_gaps(
+    min_persons: int, start_date: datetime = None, end_date: datetime = None
+) -> List[Interval]:
     """Gibt Lücken im Schichtplan zurück, die im angegebenen Zeitintervall liegen
 
     :param min_persons: Anzahl Personen, die immer anwesend sein müssen
