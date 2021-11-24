@@ -18,7 +18,7 @@ The application must be configured using environment variables or a `.env` file.
 
 ### Run
 
-    python -m stabibot.main
+    python -m stabibot.tasks.daily
 
 ## Deployment
 
