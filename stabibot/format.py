@@ -46,7 +46,7 @@ def format_message(gaps: List[Interval]) -> str:
     slots = []
     for gap in gaps:
         start = format_from_date(gap.start_datetime)
-        end = format_time(pendulum.instance(gap.start_datetime))
+        end = format_time(pendulum.instance(gap.end_datetime))
         msg = f"➡️ {start} bis {end}"
         slots.append(msg)
 
