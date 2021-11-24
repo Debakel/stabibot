@@ -86,8 +86,7 @@ def format_alarm_message(gaps: List[Interval]) -> str:
     slots = "\n".join([format_alarm_message_slot(gap) for gap in gaps])
 
     return f"""
-🆘 In {time_remaining} ist das Camp instabil 🆘 
-🆘 Es gibt folgende Lücken im Schichtplan:
+🆘 In {time_remaining} ist das Camp instabil. Lücken im Schichtplan:
 
 {slots}
     
