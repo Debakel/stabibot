@@ -22,7 +22,6 @@ from stabibot.settings import (
     TIME_ZONE,
     RESOLUTION_MINUTES,
     DEFAULT_RANGE_HOURS,
-    MIN_PERSONS,
 )
 
 
@@ -32,11 +31,18 @@ def get_schichten(interval: Interval) -> List[Interval]:
 
     calendar = icalendar.Calendar.from_ical(ical_string)
 
-    events = recurring_ical_events.of(calendar).between(
-        interval.start_datetime.replace(tzinfo=None),
-        interval.end_datetime.replace(tzinfo=None),
-    )
+    # Package `recurring_ical_events` can not handle timezone aware datetime objects.
+    # Workaround:
+    # 1. Convert to UTC
+    # 2. Remove timezone info
+    #
+    # See https://github.com/niccokunzmann/python-recurring-ical-events/issues/52
+    start = interval.start_datetime.astimezone(pytz.UTC).replace(tzinfo=None)
+    end = interval.end_datetime.astimezone(pytz.UTC).replace(tzinfo=None)
 
+    events = recurring_ical_events.of(calendar).between(start, end)
+
+    # Entferne "Repro-Schichten"
     events = [event for event in events if not "Repro" in event.get("SUMMARY", "")]
 
     schichten = list()
@@ -55,6 +61,9 @@ def get_schichten(interval: Interval) -> List[Interval]:
             end = TIME_ZONE.localize(end)
 
         schichten.append(Interval(start, end))
+
+    schichten = sorted(schichten, key=lambda schicht: schicht.start_datetime)
+
     return schichten
 
 
