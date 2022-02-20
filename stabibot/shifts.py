@@ -17,7 +17,6 @@ import recurring_ical_events
 import requests
 from pydantic import BaseModel, Field, validator
 
-from stabibot import settings
 from stabibot.intervals import Interval, IntervalCollection
 from stabibot.settings import (
     TIME_ZONE,
@@ -41,63 +40,67 @@ class Event(BaseModel):
         return value
 
 
-def get_events(interval: Interval) -> List[Event]:
-    """Gibt alle Events im gewählten Zeitintervall zurück
-    """
-    ical_string = requests.get(settings.ICS_FEED).text
+class Calendar:
+    def __init__(self, ics_feed: str):
+        self.ics_feed = ics_feed
 
-    calendar = icalendar.Calendar.from_ical(ical_string)
+    @property
+    def _calendar(self):
+        content = requests.get(self.ics_feed).text
+        return icalendar.Calendar.from_ical(content)
 
-    # Package `recurring_ical_events` can not handle timezone aware datetime objects.
-    # Workaround:
-    #   1. Convert to UTC
-    #   2. Remove timezone info
-    #
-    # See https://github.com/niccokunzmann/python-recurring-ical-events/issues/52
-    start = interval.start_datetime.astimezone(pytz.UTC).replace(tzinfo=None)
-    end = interval.end_datetime.astimezone(pytz.UTC).replace(tzinfo=None)
+    def get_within(self, interval: Interval) -> List[Event]:
+        """Gibt alle Events im gewählten Zeitintervall zurück
+        """
 
-    events = recurring_ical_events.of(calendar).between(start, end)
+        # Package `recurring_ical_events` can not handle timezone aware datetime objects.
+        # Workaround:
+        #   1. Convert to UTC
+        #   2. Remove timezone info
+        #
+        # See https://github.com/niccokunzmann/python-recurring-ical-events/issues/52
+        start = interval.start_datetime.astimezone(pytz.UTC).replace(tzinfo=None)
+        end = interval.end_datetime.astimezone(pytz.UTC).replace(tzinfo=None)
 
-    events = [Event.parse_obj(event) for event in events]
+        events = recurring_ical_events.of(self._calendar).between(start, end)
 
-    return events
+        events = [Event.parse_obj(event) for event in events]
 
+        return events
 
-def get_schichten(interval: Interval) -> List[Interval]:
-    """Gibt im Kalendar eingetragene Schichten innerhalb des übergebenen Zeitraums zurück"""
-    events = get_events(interval)
+    def get_schichten(self, interval: Interval) -> List[Interval]:
+        """Gibt im Kalendar eingetragene Schichten innerhalb des übergebenen Zeitraums zurück"""
+        events = self.get_within(interval)
 
-    # Entferne "Repro-Schichten"
-    events = [event for event in events if not "Repro" in event.summary]
+        # Entferne "Repro-Schichten"
+        events = [event for event in events if not "Repro" in event.summary]
 
-    schichten = [Interval(event.start, event.end) for event in events]
-    schichten = sorted(schichten, key=lambda schicht: schicht.start_datetime)
+        schichten = [Interval(event.start, event.end) for event in events]
+        schichten = sorted(schichten, key=lambda schicht: schicht.start_datetime)
 
-    return schichten
+        return schichten
 
+    def get_gaps(self,
+                 min_persons: int, start_date: datetime = None, end_date: datetime = None
+                 ) -> List[Interval]:
+        """Gibt Lücken im Schichtplan zurück, die im angegebenen Zeitintervall liegen
 
-def get_gaps(
-        min_persons: int, start_date: datetime = None, end_date: datetime = None
-) -> List[Interval]:
-    """Gibt Lücken im Schichtplan zurück, die im angegebenen Zeitintervall liegen
+        :param min_persons: Anzahl Personen, die immer anwesend sein müssen
+        """
+        if not start_date:
+            start_date = datetime.now(tz=pytz.timezone("Europe/Berlin"))
+        if not end_date:
+            end_date = start_date + timedelta(hours=DEFAULT_RANGE_HOURS)
 
-    :param min_persons: Anzahl Personen, die immer anwesend sein müssen
-    """
-    if not start_date:
-        start_date = datetime.now(tz=pytz.timezone("Europe/Berlin"))
-    if not end_date:
-        end_date = start_date + timedelta(hours=DEFAULT_RANGE_HOURS)
+        timerange = Interval(start_date, end_date)
 
-    timerange = Interval(start_date, end_date)
+        schichten = IntervalCollection(self.get_schichten(timerange))
+        gaps = IntervalCollection()
 
-    schichten = IntervalCollection(get_schichten(timerange))
-    gaps = IntervalCollection()
+        for slot in timerange.slots(timedelta(minutes=RESOLUTION_MINUTES)):
+            num_attendees = schichten.count_intersections(slot)
 
-    for slot in timerange.slots(timedelta(minutes=RESOLUTION_MINUTES)):
-        num_attendees = schichten.count_intersections(slot)
+            if num_attendees < min_persons:
+                gaps.add_or_join(slot)
 
-        if num_attendees < min_persons:
-            gaps.add_or_join(slot)
-
-    return gaps.intervals
+        return gaps.intervals
