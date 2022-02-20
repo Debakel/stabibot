@@ -4,8 +4,8 @@ from environs import Env
 env = Env()
 env.read_env()
 
-SCHICHTPLAN_URL = env.url("SCHICHTPLAN_URL")
-ICS_FEED_SCHICHTEN = env("ICS_FEED_SCHICHTEN")
+SCHICHTPLAN_URL = env.str("SCHICHTPLAN_URL")
+ICS_FEED = env("ICS_FEED")
 TIME_ZONE = pytz.timezone(env.str("TZ", "Europe/Berlin"))
 RESOLUTION_MINUTES = 1
 

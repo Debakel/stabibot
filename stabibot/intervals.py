@@ -1,6 +1,7 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import List
 
+import pytz
 from datetimerange import DateTimeRange
 
 
@@ -21,6 +22,13 @@ class Interval(DateTimeRange):
         ]
 
         return slots
+
+    @staticmethod
+    def from_now(days: float = 0, hours: float = 0):
+        start_date = datetime.now(tz=pytz.timezone("Europe/Berlin"))
+        end_date = start_date + timedelta(days=days, hours=hours)
+
+        return Interval(start_date, end_date)
 
 
 class IntervalCollection:
