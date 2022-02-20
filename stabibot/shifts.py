@@ -15,6 +15,7 @@ import icalendar
 import pytz
 import recurring_ical_events
 import requests
+from pydantic import BaseModel, Field, validator
 
 from stabibot import settings
 from stabibot.intervals import Interval, IntervalCollection
@@ -25,16 +26,32 @@ from stabibot.settings import (
 )
 
 
-def get_schichten(interval: Interval) -> List[Interval]:
-    """Gibt im Kalendar eingetragene Schichten innerhalb des übergebenen Zeitraums zurück"""
+class Event(BaseModel):
+    summary: str = Field(alias="SUMMARY")
+    start: datetime = Field(alias="DTSTART")
+    end: datetime = Field(alias="DTEND")
+
+    @validator('start', 'end', pre=True)
+    def validate_start(cls, value):
+        value = value.dt
+        if type(value) == date:
+            value = datetime.combine(value, datetime.min.time())
+        if not value.tzinfo:
+            value = TIME_ZONE.localize(value)
+        return value
+
+
+def get_events(interval: Interval) -> List[Event]:
+    """Gibt alle Events im gewählten Zeitintervall zurück
+    """
     ical_string = requests.get(settings.ICS_FEED).text
 
     calendar = icalendar.Calendar.from_ical(ical_string)
 
     # Package `recurring_ical_events` can not handle timezone aware datetime objects.
     # Workaround:
-    # 1. Convert to UTC
-    # 2. Remove timezone info
+    #   1. Convert to UTC
+    #   2. Remove timezone info
     #
     # See https://github.com/niccokunzmann/python-recurring-ical-events/issues/52
     start = interval.start_datetime.astimezone(pytz.UTC).replace(tzinfo=None)
@@ -42,33 +59,26 @@ def get_schichten(interval: Interval) -> List[Interval]:
 
     events = recurring_ical_events.of(calendar).between(start, end)
 
+    events = [Event.parse_obj(event) for event in events]
+
+    return events
+
+
+def get_schichten(interval: Interval) -> List[Interval]:
+    """Gibt im Kalendar eingetragene Schichten innerhalb des übergebenen Zeitraums zurück"""
+    events = get_events(interval)
+
     # Entferne "Repro-Schichten"
-    events = [event for event in events if not "Repro" in event.get("SUMMARY", "")]
+    events = [event for event in events if not "Repro" in event.summary]
 
-    schichten = list()
-    for event in events:
-        start = event["DTSTART"].dt
-        end = event["DTEND"].dt
-
-        if type(start) == date:
-            start = datetime.combine(start, datetime.min.time())
-        if type(end) == date:
-            end = datetime.combine(end, datetime.min.time())
-
-        if not start.tzinfo:
-            start = TIME_ZONE.localize(start)
-        if not end.tzinfo:
-            end = TIME_ZONE.localize(end)
-
-        schichten.append(Interval(start, end))
-
+    schichten = [Interval(event.start, event.end) for event in events]
     schichten = sorted(schichten, key=lambda schicht: schicht.start_datetime)
 
     return schichten
 
 
 def get_gaps(
-    min_persons: int, start_date: datetime = None, end_date: datetime = None
+        min_persons: int, start_date: datetime = None, end_date: datetime = None
 ) -> List[Interval]:
     """Gibt Lücken im Schichtplan zurück, die im angegebenen Zeitintervall liegen
 

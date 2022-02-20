@@ -10,6 +10,7 @@ python-dotenv = "*"
 datetimerange = "*"
 python-telegram-bot = "*"
 pendulum = "*"
+pydantic = "*"
 
 [dev-packages]
 black = "==21.11b1"
